@@ -1,3 +1,6 @@
+# api keys and passwords not to be committed
+secrets.*
+
 # Logs
 logs
 *.log

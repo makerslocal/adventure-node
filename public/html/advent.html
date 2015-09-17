@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html style="width: 100%; height: 100%;">
+<head>
+  <title>Play Adventure</title>
+
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.7/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.7/addons/p5.dom-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation/foundation.slider.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/foundation.min.css"></script>
+
+  <script type="text/javascript">
+    var text;
+
+    function setup() {
+      // make a new div and position it at 10, 10:
+      // text = createDiv("Sensor reading:");
+      // text.position(10, 10);
+      // text.style("z-index", 500);
+      // text.mouseClicked(toggleFan);
+      // make a HTTP call to the server for the data:
+      // var sensorReading = loadStrings("/getFan", showData);
+      //doUpdateAll();
+      doGetBuffer();
+    }
+
+    function draw() {
+    }
+
+    function doGetBuffer () {
+      httpDo('/getBuf', 'GET',
+      function (res) {
+        console.log("RESPONSE: ", res);
+        $('#console').append(res.buf);
+      });
+    }
+
+    function doSendCmd (cmd) {
+      httpDo('/sendCmd', 'GET', {
+        "cmd": cmd
+      }, 'json',
+      function (res) {
+        console.log("RESPONSE: ", res);
+        $('#console').append(res.buf);
+      });
+    }
+
+  </script>
+</head>
+
+<body onload="" style="background-color: #050505;
+width: 100%; height: 100%;">
+
+<style>
+.controlItem {
+  width: 900px;
+  height: 500px;
+  border: 1px solid black;
+  background: #222;
+  display: inline-block;
+  color: #b9b9b9;
+  padding: 1%;
+  margin: 1%;
+}
+.controlButton {
+  width: 200px;
+  border: 1px solid black;
+  display: inline-block;
+  color: #b9b9b9;
+  background: #222;
+  padding: 1%;
+  margin: 1%;
+}
+</style>
+
+<div id="console" class="controlItem">
+
+</div>
+<br>
+<input type="text" name="cmd" id="cmd">
+<div class="controlButton" id="sendBtn">
+  Send
+</div>
+
+</body>
+</html>
+
+<script>
+$('#sendBtn').click(function (event) {
+  var cmd = $('#cmd').val();
+  console.log("cmd: ", cmd);
+  doSendCmd(cmd);
+  $('#console').append(cmd);
+  $('#cmd').val('');
+});
+</script>
