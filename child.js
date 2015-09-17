@@ -33,16 +33,16 @@ process.on('message', function (message) {
       saveName = message.saveName;
     }
     if (saveName) {
-      adventProc = spawn('adventure', [saveName.toString('utf-8')], {
+      adventProc = spawn('unbuffer', ['-p', 'adventure', saveName.toString('utf-8')], {
         cwd: 'data'
       });
     } else {
-      adventProc = spawn('adventure');
+      adventProc = spawn('unbuffer', ['-p', 'adventure']);
     }
 
     adventProc.stdout.on('data', function (data) {
       buffer = buffer + '\n[' + data + ']';
-      console.log('stdout: ' + data);
+      console.log('new buffer: ' + buffer);
     });
 
     adventProc.stderr.on('data', function (data) {
@@ -68,6 +68,7 @@ process.on('message', function (message) {
       res: saveName
     });
   } else if (message.buf == 'get buffer') {
+    console.log("Sending buffer contents.");
     process.send({
       res: buffer
     });
@@ -79,15 +80,17 @@ process.on('message', function (message) {
     });
     buffer = '';
   } else if (!message.init && message.buf) {
-    adventProc.stdin.write(message.buf.toString('utf-8'));
-    /*adventProc.stdout.once('data', function (data) {
-      buffer = buffer + '\n[' + data + ']';
-      process.send({
-        res: buffer
+    adventProc.stdin.write(message.buf.toString('utf-8') + '\n',
+      function() {
+        adventProc.stdout.once('data', function (data) {
+          console.log("child, sending response");
+          process.send({
+            res: buffer
+          });
+          buffer = '';
+        });
+
       });
-      buffer = '';
-      console.log('stdout: ' + data);
-    });*/
   }
 
   //console.log("Child has been contacted " + messageCount + " times.");

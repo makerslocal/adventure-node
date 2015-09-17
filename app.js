@@ -90,9 +90,7 @@ app.get('/', function(req, res, next) {
 app.get('/play', function(req, res, next) {
   if (!children[req.sessionID])
   {
-    children[req.sessionID] = fork('child.js', [], {
-      /*cwd: "/home/berocs/advTemp" */
-    });
+    children[req.sessionID] = fork('child.js');
     children[req.sessionID].send({
       init: true,
       sessionID: req.sessionID,
@@ -108,12 +106,12 @@ app.get('/sendCmd', function(req, res, next) {
   if (!children[req.sessionID]) {
     res.send("Error, no process.");
   } else {
-    children[req.sessionID].send({
-      buf: req.query.cmd
-    });
     children[req.sessionID].once('message', function(message) {
       console.log("Parent got response: ", message);
       res.json({ buf: message.res });
+    });
+    children[req.sessionID].send({
+      buf: req.query.cmd
     });
   }
 });
@@ -122,12 +120,12 @@ app.get('/getBuf', function(req, res, next) {
   if (!children[req.sessionID]) {
     res.send("Error, no process.");
   } else {
-    children[req.sessionID].send({
-      do: "get buffer"
-    });
     children[req.sessionID].once('message', function(message) {
       console.log("Parent got response: ", message);
       res.json({ buf: message.res });
+    });
+    children[req.sessionID].send({
+      buf: "get buffer"
     });
   }
 });
@@ -144,52 +142,6 @@ app.get('/saves', function(req, res, next) {
   //res.render('index', { title: 'Express' });
   */
 });
-
-/*
-var child = fork('child.js');
-child.on('message', function(message) {
-  console.log("Parent got message: ", message);
-});
-*/
-
-//var outfs = fs.openSync('./out.log', 'a');
-
-var child = spawn('./do_output.sh', {
-  stdio: ['pipe', 'pipe', 'pipe']
-});
-
-child.on('error', function (err) {
-  console.log("Failed to start child.", err);
-});
-// child.stderr.on('data', function (data) {
-//   console.log('CHILD stderr:', data);
-// });
-// child.stdout.setEncoding('utf8');
-// child.stdout.on('readable', function() {
-//   console.log("Child has new stdout data available.");
-// });
-// child.stdout.on('data', function(data) {
-//   var message = decoder.write(data);
-//   console.log("CHILD stdout: " + message.trim());
-// });
-// child.stdout.on('end', function () {
-//   console.log('Finished collecting data chunks.');
-// });
-
-child.on('close', function (code) {
-  if (code !== 0) {
-    console.log('grep process exited with code ' + code);
-  }
-});
-
-console.log("spawned: " + child.pid);
-
-child.stdin.write("yes\nhello\nthere\nhello\n", 'utf8', function () {
-  console.log("Written to child stdin.");
-  //console.log(child.stdout.read(1), child.stdout.buffer);
-});
-//child.stdin.end();
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

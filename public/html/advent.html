@@ -32,10 +32,13 @@
     }
 
     function doGetBuffer () {
-      httpDo('/getBuf', 'GET',
+      httpDo('/getBuf', 'GET', 'json',
       function (res) {
-        console.log("RESPONSE: ", res);
-        $('#console').append(res.buf);
+        console.log("Get Buf RESPONSE: ", res);
+        //var resJson = JSON.parse(res);
+        $('#console').append(res.buf + '<br>');
+        $('#console').append("hello");
+        console.log(typeof(res));
       });
     }
 
@@ -44,8 +47,8 @@
         "cmd": cmd
       }, 'json',
       function (res) {
-        console.log("RESPONSE: ", res);
-        $('#console').append(res.buf);
+        console.log("Send Cmd RESPONSE: ", res);
+        $('#console').append(res.buf+'<br>');
       });
     }
 
