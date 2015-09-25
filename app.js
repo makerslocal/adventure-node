@@ -24,8 +24,9 @@ var cstore = require('cluster-store');
 var numCores = require('os').cpus().length;
 
 // Routes
-var routes = require('./routes/index');
-var users = require('./routes/users');
+var route_index = require('./routes/index.js');
+var route_mgmt = require('./routes/mgmt.js');
+var route_api = require('./routes/api.js');
 
 // Application specific variables
 var secrets = require('./secrets.json'); // File of non-git data
@@ -69,90 +70,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.use('/', routes);
-//app.use('/users', users);
-
-app.get('/', function(req, res, next) {
-  console.log("Session:\n", req.session, "\nSID: "+req.sessionID);
-  if (!children[req.sessionID])
-  {
-    res.sendFile(path.join(__dirname, 'public/html/index.html'));
-    console.log("No sub process for ID!");
-    //children[req.sessionID] = fork('child.js');
-    //children[req.sessionID].send({ ID: req.sessionID });
-  } else {
-    res.redirect('/play');
-    //children[req.sessionID].send({ hello: "Hi there..." });
-  }
-  //child.send({ hello: "Hi there!" });
-});
-
-app.get('/play', function(req, res, next) {
-  if (!children[req.sessionID])
-  {
-    children[req.sessionID] = fork('child.js');
-    children[req.sessionID].send({
-      init: true,
-      sessionID: req.sessionID,
-      saveName: req.query.saveName
-    });
-    res.sendFile(path.join(__dirname, 'public/html/advent.html'));
-  } else {
-    res.sendFile(path.join(__dirname, 'public/html/advent.html'));
-  }
-});
-
-app.get('/sendCmd', function(req, res, next) {
-  if (!children[req.sessionID]) {
-    res.send("Error, no process.");
-  } else {
-    children[req.sessionID].once('message', function(message) {
-      console.log("Parent got response: ", message);
-      res.json({ buf: message.res });
-    });
-    children[req.sessionID].send({
-      buf: req.query.cmd
-    });
-  }
-});
-
-app.get('/getBuf', function(req, res, next) {
-  if (!children[req.sessionID]) {
-    res.send("Error, no process.");
-  } else {
-    children[req.sessionID].once('message', function(message) {
-      console.log("Parent got response: ", message);
-      res.json({ buf: message.res });
-    });
-    children[req.sessionID].send({
-      buf: "get buffer"
-    });
-  }
-});
-
-app.get('/getHist', function(req, res, next) {
-  if (!children[req.sessionID]) {
-    res.send("Error, no process.");
-  } else {
-    children[req.sessionID].once('message', function(message) {
-      console.log("Parent got response: ", message);
-      res.json({ buf: message.res });
-    });
-    children[req.sessionID].send({
-      buf: "get history"
-    });
-  }
-});
-
-app.get('/saves', function(req, res, next) {
-  var proc_ls = exec('ls', {
-    cwd: "data"
-  },
-  function (error, stdout, stderr) {
-    console.log("ls data: " + stdout);
-    res.send(stdout);
-  });
-});
+app.use('/', route_index);
+app.use('/mgmt', route_mgmt);
+app.use('/api', route_api);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
