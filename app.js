@@ -130,17 +130,28 @@ app.get('/getBuf', function(req, res, next) {
   }
 });
 
+app.get('/getHist', function(req, res, next) {
+  if (!children[req.sessionID]) {
+    res.send("Error, no process.");
+  } else {
+    children[req.sessionID].once('message', function(message) {
+      console.log("Parent got response: ", message);
+      res.json({ buf: message.res });
+    });
+    children[req.sessionID].send({
+      buf: "get history"
+    });
+  }
+});
+
 app.get('/saves', function(req, res, next) {
-  console.log("stdout: ", child.stdout);
-  /*var proc_ls = spawn('ls', ['-l'], {
+  var proc_ls = exec('ls', {
     cwd: "data"
+  },
+  function (error, stdout, stderr) {
+    console.log("ls data: " + stdout);
+    res.send(stdout);
   });
-  proc_ls.stdout.on('data', function (data) {
-    console.log("ls data: " + data);
-  });
-  res.send("data");
-  //res.render('index', { title: 'Express' });
-  */
 });
 
 // catch 404 and forward to error handler

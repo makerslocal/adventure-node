@@ -12,8 +12,13 @@ var messageCount = 0;
 var sessionID = 0;
 var saveName = 0;
 var adventProc;
+var history = '';
 var buffer = '';
 
+function newData (data) {
+  buffer = data+'<br>';
+  history = history + buffer;
+}
 
 console.log("Child process started.");
 
@@ -37,11 +42,13 @@ process.on('message', function (message) {
         cwd: 'data'
       });
     } else {
-      adventProc = spawn('unbuffer', ['-p', 'adventure']);
+      adventProc = spawn('unbuffer', ['-p', 'adventure'], {
+        cwd: 'data'
+      });
     }
 
     adventProc.stdout.on('data', function (data) {
-      buffer = buffer + '\n[' + data + ']';
+      newData(data);
       console.log('new buffer: ' + buffer);
     });
 
@@ -72,25 +79,28 @@ process.on('message', function (message) {
     process.send({
       res: buffer
     });
-    buffer = '';
+  } else if (message.buf == 'get history') {
+    console.log("Sending buffer contents.");
+    process.send({
+      res: history
+    });
   } else if (message.buf == 'close') {
     adventProc.stdin.end();
     process.send({
       res: buffer
     });
-    buffer = '';
   } else if (!message.init && message.buf) {
-    adventProc.stdin.write(message.buf.toString('utf-8') + '\n',
-      function() {
-        adventProc.stdout.once('data', function (data) {
-          console.log("child, sending response");
-          process.send({
-            res: buffer
-          });
-          buffer = '';
+    var input = message.buf.toString('utf-8');
+    history = history + '<strong>'+input+'</strong><br><br>';
+    adventProc.stdin.write(input + '\n',
+    function() {
+      adventProc.stdout.once('data', function (data) {
+        console.log("child, sending response");
+        process.send({
+          res: buffer
         });
-
       });
+    });
   }
 
   //console.log("Child has been contacted " + messageCount + " times.");
