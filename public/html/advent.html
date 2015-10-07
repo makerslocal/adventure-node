@@ -26,13 +26,14 @@
       // var sensorReading = loadStrings("/getFan", showData);
       //doUpdateAll();
       doGetHistory();
+      doGetBuffer();
     }
 
     function draw() {
     }
 
     function doGetBuffer () {
-      httpDo('/getBuf', 'GET', 'json',
+      httpDo('/api/game/getBuffer', 'GET', 'json',
       function (res) {
         console.log("Get Buf RESPONSE: ", res);
         $('#console').append(res.buf);
@@ -41,16 +42,16 @@
     }
 
     function doGetHistory () {
-      httpDo('/getHist', 'GET', 'json',
+      httpDo('/api/game/getBufferAll', 'GET', 'json',
       function (res) {
-        console.log("Get Hist RESPONSE: ", res);
+        console.log("Get bufferAll RESPONSE: ", res);
         $('#console').append(res.buf);
         $('#console').animate({ scrollTop: $('#console')[0].scrollHeight }, "slow");
       });
     }
 
     function doSendCmd (cmd) {
-      httpDo('/sendCmd', 'GET', {
+      httpDo('/api/game/send', 'GET', {
         "cmd": cmd
       }, 'json',
       function (res) {

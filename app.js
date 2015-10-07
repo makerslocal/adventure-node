@@ -1,5 +1,7 @@
 /**
- * Adventure-Node
+ * app.js - Composition Root
+ * Sets up modules and
+ * employs error handling.
  */
 
 // General Node/Express Modules
@@ -30,7 +32,7 @@ var route_api = require('./routes/api.js');
 
 // Application specific variables
 var secrets = require('./secrets.json'); // File of non-git data
-var children = {}; // Collection of running children processes
+var children = {}; // Collection of running child.js processes
 
 var app = express();
 
@@ -58,11 +60,15 @@ app.use(session({
   cookie: { maxAge: 3600000 } /* one hour */
 }));
 
+function endSession (sid)
+{
+  cstore_instance.destroy(sid);
+}
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-// uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -70,9 +76,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Instantiate Routes
+
+
+// Employ Routes
 app.use('/', route_index);
-app.use('/mgmt', route_mgmt);
 app.use('/api', route_api);
+
+
+//
+// error handlers
+//
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -80,8 +94,6 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
-
-// error handlers
 
 // development error handler
 // will print stacktrace
@@ -104,6 +116,5 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
 
 module.exports = app;

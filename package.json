@@ -15,5 +15,9 @@
     "jade": "~1.9.2",
     "morgan": "~1.5.3",
     "serve-favicon": "~2.2.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-jshint": "^1.11.2"
   }
 }
