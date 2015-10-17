@@ -9,8 +9,9 @@
 var express = require('express');
 var router = express.Router();
 
+
 // main module
-function Api (children, session) {
+function Route (children, session) {
   //Convey from webpage to child process
   router.get('/game/send', function(req, res, next) {
     if (!children[req.sessionID]) {
@@ -94,6 +95,7 @@ function Api (children, session) {
   router.get('/saves', function(req, res, next) {
     //
   });
+  return (router);
 }
 
-module.exports = Api;
+module.exports = Route;

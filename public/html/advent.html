@@ -15,38 +15,44 @@
 
   <script type="text/javascript">
     var text;
+    var textArea;
+    var playerInput;
 
     function setup() {
-      // make a new div and position it at 10, 10:
-      // text = createDiv("Sensor reading:");
-      // text.position(10, 10);
-      // text.style("z-index", 500);
-      // text.mouseClicked(toggleFan);
-      // make a HTTP call to the server for the data:
-      // var sensorReading = loadStrings("/getFan", showData);
-      //doUpdateAll();
-      doGetHistory();
-      doGetBuffer();
     }
 
     function draw() {
+    }
+
+    function appendText (buf) {
+      if (buf.length < 1) {
+        return;
+      }
+      for (index = 0; index < buf.length; index++) {
+        if (buf[index].type === 'player') {
+          textArea.append("<br><strong>"+buf[index].text+'</strong>');
+        } else {
+          textArea.append("<br><br>"+buf[index].text);
+        }
+      }
+      console.log("scroll: ", textArea.height);
+      textArea.animate({ scrollTop: textArea[0].scrollHeight }, "slow");
+      //textArea.scrollTop(textArea.height());
     }
 
     function doGetBuffer () {
       httpDo('/api/game/getBuffer', 'GET', 'json',
       function (res) {
         console.log("Get Buf RESPONSE: ", res);
-        $('#console').append(res.buf);
-        $('#console').animate({ scrollTop: $('#console')[0].scrollHeight }, "slow");
+        appendText(res.buf);
       });
     }
 
     function doGetHistory () {
       httpDo('/api/game/getBufferAll', 'GET', 'json',
       function (res) {
-        console.log("Get bufferAll RESPONSE: ", res);
-        $('#console').append(res.buf);
-        $('#console').animate({ scrollTop: $('#console')[0].scrollHeight }, "slow");
+        console.log("Get bufferAll RESPONSE: ", res.buf, typeof(res.buf), res.buf.length);
+        appendText(res.buf);
       });
     }
 
@@ -56,70 +62,84 @@
       }, 'json',
       function (res) {
         console.log("Send Cmd RESPONSE: ", res);
-        $('#console').append(res.buf);
-        $('#console').animate({ scrollTop: $('#console')[0].scrollHeight }, "slow");
+        var tmpBuf = [];
+        tmpBuf[0] = {};
+        tmpBuf[0].type=res.buf.type;
+        tmpBuf[0].text=res.buf.text;
+        appendText(tmpBuf);
       });
     }
 
   </script>
 </head>
 
-<body onload="" style="background-color: #050505;
+<body onload="firstFunction()" style="background-color: #050505;
 width: 100%; height: 100%;">
 
 <style>
-.controlItem {
-  width: 900px;
-  height: 500px;
+#wrapper {
+  width: 800px;
+  height: 100%;
   border: 1px solid black;
   background: #222;
-  display: inline-block;
   color: #b9b9b9;
-  padding: 1%;
-  margin: 1%;
-  overflow: scroll;
+  padding: 0;
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
 }
-.controlButton {
-  width: 200px;
-  border: 1px solid black;
-  display: inline-block;
-  color: #b9b9b9;
+#terminal {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  color: #29bd26;
   background: #222;
-  padding: 1%;
-  margin: 1%;
+  position: absolute;
+  overflow-y: auto;
+  bottom: 41px;
+}
+#input {
+  width: 100%;
+  height: 30px;
+  position: absolute;
+  bottom: 10px;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #29bd26;
 }
 </style>
 
-<div id="console" class="controlItem">
-
-</div>
-<br>
-<input type="text" name="cmd" id="cmd" style="width: 400px;">
-<div class="controlButton" id="sendBtn">
-  Send
+<div id="wrapper">
+  <div id="terminal">
+  </div>
+  <input type="text" name="playerInput" id="input">
 </div>
 
 </body>
 </html>
 
 <script>
-$('#sendBtn').click(function (event) {
-  var cmd = $('#cmd').val();
-  console.log("cmd: ", cmd);
-  doSendCmd(cmd);
-  $('#console').append('<strong>'+cmd + '</strong><br><br>');
-  $('#cmd').val('');
-});
+function firstFunction () {
+  textArea = $('#terminal');
+  playerInput = $('#input');
 
-$('#cmd').keypress(function (e) {
-  if (e.which == 13) {
-    var cmd = $('#cmd').val();
-    console.log("cmd: ", cmd);
-    doSendCmd(cmd);
-    $('#console').append('<strong>'+cmd+'</strong><br><br>');
-    $('#cmd').val('');
-    return false;    //<---- Add this line
-  }
-});
+  playerInput.keypress(function (e) {
+    if (e.which == 13) {
+      var cmd = playerInput.val();
+      console.log("cmd: ", cmd);
+      doSendCmd(cmd);
+      var tmpBuf = [];
+      tmpBuf[0] = {};
+      tmpBuf[0].type='player';
+      tmpBuf[0].text=cmd;
+      appendText(tmpBuf);
+      playerInput.val('');
+      return false;    //<---- Add this line
+    }
+  });
+
+  doGetHistory();
+}
 
 </script>

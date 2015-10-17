@@ -11,12 +11,6 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var childProcess = require('child_process');
-var spawn = childProcess.spawn;
-var fork = childProcess.fork;
-var exec = childProcess.exec;
-var StringDecoder = require('string_decoder').StringDecoder;
-var decoder = new StringDecoder('utf8');
 var fs = require('fs');
 
 // Modules for Express Session
@@ -24,11 +18,6 @@ var session = require('express-session');
 var cluster = require('cluster');
 var cstore = require('cluster-store');
 var numCores = require('os').cpus().length;
-
-// Routes
-var route_index = require('./routes/index.js');
-var route_mgmt = require('./routes/mgmt.js');
-var route_api = require('./routes/api.js');
 
 // Application specific variables
 var secrets = require('./secrets.json'); // File of non-git data
@@ -52,6 +41,12 @@ cstore.create(cstore_opts).then(function (store) {
   });
   cstore_instance = store;
 });
+
+module.exports.endSession = function (sid)
+{
+  cstore_instance.destroy(sid);
+};
+
 app.use(session({
   secret: secrets.sessionSecret,
   store: cstore_instance, /* I have no idea what I'm doing */
@@ -59,11 +54,6 @@ app.use(session({
   saveUninitialized: true,
   cookie: { maxAge: 3600000 } /* one hour */
 }));
-
-function endSession (sid)
-{
-  cstore_instance.destroy(sid);
-}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -77,12 +67,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Instantiate Routes
-
+var route_index = require('./routes/index')(children, session);
+var route_api = require('./routes/api.js')(children, session);
 
 // Employ Routes
 app.use('/', route_index);
 app.use('/api', route_api);
-
 
 //
 // error handlers

@@ -8,13 +8,19 @@
 // Requirements
 var express = require('express');
 var router = express.Router();
+var path = require('path');
+var childProcess = require('child_process');
+var spawn = childProcess.spawn;
+var fork = childProcess.fork;
+var exec = childProcess.exec;
+var StringDecoder = require('string_decoder').StringDecoder;
+var decoder = new StringDecoder('utf8');
 
-// Main module
-function Index (children, session) {
+function Route (children, session) {
   router.get('/', function(req, res, next) {
     //console.log("Session:\n", req.session, "\nSID: "+req.sessionID);
     if (!children[req.sessionID]) {
-      res.sendFile(path.join(__dirname, 'public/html/index.html'));
+      res.sendFile(path.join(__dirname, '../public/html', 'index.html'));
       //console.log("No sub process for ID!");
     } else {
       res.redirect('/play');
@@ -29,9 +35,9 @@ function Index (children, session) {
         sessionID: req.sessionID,
         saveName: req.query.saveName
       });
-      res.sendFile(path.join(__dirname, 'public/html/advent.html'));
+      res.sendFile(path.join(__dirname, '../public/html', 'advent.html'));
     } else {
-      res.sendFile(path.join(__dirname, 'public/html/advent.html'));
+      res.sendFile(path.join(__dirname, '../public/html', 'advent.html'));
     }
   });
 
@@ -44,6 +50,7 @@ function Index (children, session) {
       res.send(stdout);
     });
   });
+  return(router);
 }
 
-module.exports = Index;
+module.exports = Route;
